@@ -1,59 +1,47 @@
-// product.controller.ts
-import { Body, Controller, Get, Post, Delete, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Put,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CreateProductDTO } from './dtos/create-product.dto';
-
-type ProductType = { id: number; title: string; price: number };
+import { UpdateProductDTO } from './dtos/update-product.dto';
+import { ProductService } from './product.service';
 
 @Controller('api/products')
 export class ProductController {
-  // array of objects
-  private products: ProductType[] = [
-    { id: 1, title: 'book', price: 12 },
-    { id: 2, title: 'PC', price: 1200 },
-    { id: 3, title: 'laptop', price: 500 },
-  ];
+  constructor(private readonly productService: ProductService) {}
 
-  // POST http://localhost:3000/api/products
   @Post()
-  public createProducts(@Body() body: CreateProductDTO): ProductType[] {
-    const newProduct: ProductType = {
-      id:
-        this.products.length > 0
-          ? Math.max(...this.products.map((p) => p.id)) + 1
-          : 1,
-      title: body.title,
-      price: body.price,
-    };
-
-    this.products.push(newProduct);
-    return this.products;
+  public createProducts(@Body() body: CreateProductDTO) {
+    return this.productService.createProducts(body);
   }
 
-  // GET http://localhost:3000/api/products
   @Get()
-  public getAllProducts(): ProductType[] {
-    return this.products;
+  public getAllProducts() {
+    return this.productService.getAllProducts();
   }
 
-  // GET http://localhost:3000/api/products/:id
   @Get(':id')
-  public getProductById(@Param('id') id: string): ProductType[] {
-    const productId = parseInt(id);
-    const product = this.products.find((p) => p.id === productId);
-    if (product) {
-      return [product];
-    }
-    return [];
+  public getOneProductById(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getOneProductById(id);
   }
 
-  // DELETE http://localhost:3000/api/products/:id
+  @Put(':id')
+  public updateProductById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateProductDTO,
+  ) {
+    return this.productService.updateProductById(id, body);
+  }
+
   @Delete(':id')
-  public deleteProduct(@Param('id') id: string): ProductType[] {
-    const productId = parseInt(id);
-    const productIndex = this.products.findIndex((p) => p.id === productId);
-    if (productIndex !== -1) {
-      this.products.splice(productIndex, 1);
-    }
-    return this.products;
+  public async deleteProduct(@Param('id', ParseIntPipe) id: number) {
+    await this.productService.deleteProduct(id);
+    return { message: 'product deleted successfully' };
   }
 }
