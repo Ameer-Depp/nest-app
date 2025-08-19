@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './products/product.entity';
 import { Review } from './reviewes/review.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { User } from './users/user.entity';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         synchronize: process.env.NODE_ENV !== 'production', // turn off in production!
-        entities: [Product, Review],
+        entities: [Product, Review, User],
       }),
     }),
     ConfigModule.forRoot({

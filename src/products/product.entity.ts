@@ -1,7 +1,11 @@
+import { Review } from 'src/reviewes/review.entity';
+import { User } from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,7 +15,7 @@ export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: '100' })
+  @Column({ type: 'varchar', length: 100 })
   title: string;
 
   @Column({ type: 'float' })
@@ -32,4 +36,10 @@ export class Product {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updatedAt: Date;
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
+
+  @ManyToOne(() => User, (user) => user.products, { onDelete: 'CASCADE' })
+  user: User;
 }
