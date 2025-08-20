@@ -9,12 +9,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterDTO } from './dtos/register.dto';
 import * as bcrypt from 'bcryptjs';
 import { LoginDTO } from './dtos/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   /**
@@ -32,13 +34,18 @@ export class UserService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = this.userRepository.create({
+    let newUser = this.userRepository.create({
       email,
       userName,
       password: hashedPassword,
     });
 
-    return this.userRepository.save(newUser);
+    newUser = await this.userRepository.save(newUser);
+
+    const payload = { id: newUser.id, userType: newUser.userType };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { accessToken };
   }
 
   /**
@@ -59,7 +66,9 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Do NOT return the password
-    return user;
+    const payload = { id: user.id, userType: user.userType };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { accessToken };
   }
 }
