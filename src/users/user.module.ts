@@ -5,7 +5,6 @@ import { User } from './user.entity';
 import { UserService } from './user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
 @Module({
   controllers: [UserController],
   providers: [UserService],

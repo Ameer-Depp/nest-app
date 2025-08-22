@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Product } from 'src/products/product.entity';
 import { Review } from 'src/reviewes/review.entity';
 import {
@@ -9,12 +10,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-enum UserType {
+export enum UserType {
   Admin = 'admin',
   Normal_USER = 'normal_user',
 }
 
-@Entity({ name: 'users' }) // ✅ fixed table name
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -26,6 +27,7 @@ export class User {
   email: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column({ type: 'enum', enum: UserType, default: UserType.Normal_USER })
@@ -47,7 +49,6 @@ export class User {
   })
   updatedAt: Date;
 
-  // ✅ One user can have many products
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
 

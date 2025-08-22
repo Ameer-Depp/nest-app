@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -10,6 +11,7 @@ import { RegisterDTO } from './dtos/register.dto';
 import * as bcrypt from 'bcryptjs';
 import { LoginDTO } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { updateUserDTO } from './dtos/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -29,8 +31,9 @@ export class UserService {
 
     const userFromDB = await this.userRepository.findOne({ where: { email } });
     if (userFromDB) {
-      throw new BadRequestException('user already exists');
+      throw new BadRequestException('User already exists');
     }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -70,5 +73,88 @@ export class UserService {
     const accessToken = await this.jwtService.signAsync(payload);
 
     return { accessToken };
+  }
+
+  /**
+   * GET USER PROFILE
+   * @param id - User ID from JWT payload
+   * @returns User profile data
+   */
+  public async getUserProfile(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Account does not exist');
+    }
+
+    return { user };
+  }
+
+  // Add this method to your existing UserService class
+
+  /**
+   * GET ALL USERS - ADMIN ONLY
+   * @returns List of all users (without passwords)
+   */
+  public async getAllUsers() {
+    const users = await this.userRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return {
+      users,
+      total: users.length,
+    };
+  }
+
+  /**
+   * UPDATE USER
+   * @param updateUserDTO
+   * @returns updated user data
+   */
+  public async updateUser(id: number, dto: updateUserDTO) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User does not exist');
+    }
+
+    if (dto.userName !== undefined) {
+      user.userName = dto.userName;
+    }
+
+    if (dto.email !== undefined) {
+      if (dto.email !== user.email) {
+        const existingUser = await this.userRepository.findOne({
+          where: { email: dto.email },
+        });
+        if (existingUser) {
+          throw new BadRequestException('Email is already taken');
+        }
+      }
+      user.email = dto.email;
+    }
+
+    const updatedUser = await this.userRepository.save(user);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
+  /**
+   * DELETE USER
+   * @param
+   */
+  public async deleteUser(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User does not exist');
+    }
+
+    await this.userRepository.remove(user);
   }
 }

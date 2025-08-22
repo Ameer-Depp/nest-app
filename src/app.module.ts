@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { ProductModule } from './products/product.module';
 import { UserModule } from './users/user.module';
 import { ReviewModule } from './reviewes/review.module';
@@ -7,6 +7,7 @@ import { Product } from './products/product.entity';
 import { Review } from './reviewes/review.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './users/user.entity';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -34,6 +35,9 @@ import { User } from './users/user.entity';
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
+  ],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
   ],
 })
 export class AppModule {}
