@@ -4,31 +4,63 @@ import { UpdateProductDTO } from './dtos/update-product.dto';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserService } from 'src/users/user.service';
 
+// Injectable means you can dependency inject an object from this class into the contractor of another class to use it's full functionality
 @Injectable()
 export class ProductService {
   constructor(
+    // better than create an object for each function, use DE that call the product's entity fields
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly userService: UserService,
   ) {}
 
-  public async createProducts(dto: CreateProductDTO) {
+  /**
+   * CREATE NEW PRODUCT
+   * @param CreateProductDTO
+   * @param userId - ID of the user creating the product
+   * @returns Created product with user relation
+   */
+  public async createProducts(dto: CreateProductDTO, userId: number) {
+    const user = await this.userService.getUserProfile(userId);
     const newProduct = this.productRepository.create(dto);
+    newProduct.user = user;
     return this.productRepository.save(newProduct);
   }
 
+  /**
+   * GET ALL PRODUCTS
+   * @returns List of all products with user and reviews relations
+   */
   public async getAllProducts() {
-    return this.productRepository.find();
+    return this.productRepository.find({
+      relations: { user: true, reviews: true },
+    });
   }
 
+  /**
+   * GET PRODUCT BY ID
+   * @param id - Product ID
+   * @returns Product data with user and reviews relations
+   */
   public async getOneProductById(id: number) {
-    const product = await this.productRepository.findOne({ where: { id } });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: { user: true, reviews: true },
+    });
     if (!product) {
       throw new NotFoundException('product not found');
     }
     return product;
   }
 
+  /**
+   * UPDATE PRODUCT BY ID
+   * @param id - Product ID
+   * @param UpdateProductDTO
+   * @returns Updated product data
+   */
   public async updateProductById(id: number, dto: UpdateProductDTO) {
     const product = await this.getOneProductById(id);
 
@@ -39,6 +71,10 @@ export class ProductService {
     return this.productRepository.save(product);
   }
 
+  /**
+   * DELETE PRODUCT
+   * @param id - Product ID to delete
+   */
   public async deleteProduct(id: number) {
     const product = await this.getOneProductById(id);
     await this.productRepository.remove(product);

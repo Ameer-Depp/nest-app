@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 @Module({
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService, JwtModule],
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({

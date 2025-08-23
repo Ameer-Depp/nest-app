@@ -23,8 +23,8 @@ export class UserService {
 
   /**
    * CREATE NEW USER
-   * @param RegisterDTO
-   * @returns JWT (ACCESS)
+   * @param dto - RegisterDTO containing user registration data
+   * @returns JWT access token
    */
   public async register(dto: RegisterDTO) {
     const { email, password, userName } = dto;
@@ -53,8 +53,8 @@ export class UserService {
 
   /**
    * LOGIN USER
-   * @param LoginDTO
-   * @returns JWT (ACCESS)
+   * @param dto - LoginDTO containing email and password
+   * @returns JWT access token
    */
   public async login(dto: LoginDTO) {
     const { email, password } = dto;
@@ -89,14 +89,12 @@ export class UserService {
       throw new UnauthorizedException('Account does not exist');
     }
 
-    return { user };
+    return user;
   }
-
-  // Add this method to your existing UserService class
 
   /**
    * GET ALL USERS - ADMIN ONLY
-   * @returns List of all users (without passwords)
+   * @returns Object containing users array and total count
    */
   public async getAllUsers() {
     const users = await this.userRepository.find({
@@ -113,8 +111,9 @@ export class UserService {
 
   /**
    * UPDATE USER
-   * @param updateUserDTO
-   * @returns updated user data
+   * @param id - User ID to update
+   * @param dto - updateUserDTO containing fields to update
+   * @returns Updated user data
    */
   public async updateUser(id: number, dto: updateUserDTO) {
     const user = await this.userRepository.findOne({ where: { id } });
@@ -140,14 +139,12 @@ export class UserService {
 
     const updatedUser = await this.userRepository.save(user);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    return updatedUser;
   }
 
   /**
    * DELETE USER
-   * @param
+   * @param id - User ID to delete
    */
   public async deleteUser(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });

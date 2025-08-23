@@ -39,9 +39,13 @@ export class UserController {
 
   // GET http://localhost:3000/api/users/profile
   @Get('profile')
+  // the AuthGuard is responsible for a valid token, not only that he return a request that contains the decoded payload of the JWT
+  // that will be used in the @Request parameter (we want only the id)
   @UseGuards(AuthGuard)
+  // the @Request will get the returned request from the AuthGuard, and put it in the (req) parameter *you can name it whatever you want
   getProfile(@Request() req: any) {
-    console.log('execution the function');
+    // the req contains the decoded payload from the AuthGuard who brought to req by the @Request
+    // and then we only need the id cause this function request an id to execute
     return this.userService.getUserProfile(req.user.id);
   }
 

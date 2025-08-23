@@ -10,8 +10,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+// Entity decorator means this will be a table with a name of 'products'
 @Entity({ name: 'products' })
 export class Product {
+  // this column means it's the PRIMARY_KEY
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -37,9 +39,11 @@ export class Product {
   })
   updatedAt: Date;
 
+  // 'one' product could have 'many' reviews
   @OneToMany(() => Review, (review) => review.product)
   reviews: Review[];
 
+  // 'many' product could have 'one' user who create them
   @ManyToOne(() => User, (user) => user.products, { onDelete: 'CASCADE' })
   user: User;
 }
