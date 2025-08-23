@@ -1,7 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Product } from './product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'src/users/user.service';
@@ -33,8 +41,28 @@ export class ProductService {
    * GET ALL PRODUCTS
    * @returns List of all products with user and reviews relations
    */
-  public async getAllProducts() {
+  public async getAllProducts(
+    title?: string,
+    minPrice?: string,
+    maxPrice?: string,
+  ) {
+    // Build the where clause dynamically
+    const where: any = {};
+
+    if (title) {
+      where.title = Like(`%${title.toLowerCase()}%`);
+    }
+
+    if (minPrice && maxPrice) {
+      where.price = Between(parseInt(minPrice), parseInt(maxPrice));
+    } else if (minPrice) {
+      where.price = MoreThanOrEqual(parseInt(minPrice));
+    } else if (maxPrice) {
+      where.price = LessThanOrEqual(parseInt(maxPrice));
+    }
+
     return this.productRepository.find({
+      where,
       relations: { user: true, reviews: true },
     });
   }

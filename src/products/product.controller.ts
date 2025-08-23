@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
@@ -19,6 +20,7 @@ import { AuthGuard } from 'src/users/guards/auth.guard';
 import { Roles } from 'src/users/decorators/roles.decorator';
 import { UserType } from 'src/users/user.entity';
 import { RolesGuard } from 'src/users/guards/roles.guard';
+import { ProductFiltersDTO } from './dtos/product-filter.dto';
 
 @Controller('api/products')
 export class ProductController {
@@ -34,8 +36,12 @@ export class ProductController {
   }
 
   @Get()
-  public getAllProducts() {
-    return this.productService.getAllProducts();
+  public getAllProducts(@Query() filters: ProductFiltersDTO) {
+    return this.productService.getAllProducts(
+      filters.title,
+      filters.minPrice,
+      filters.maxPrice,
+    );
   }
 
   @Get(':id')
