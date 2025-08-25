@@ -16,6 +16,7 @@ import { User } from './users/user.entity';
 // the ConfigModule is used to pair the project with the .env file, ConfigService used to create the database configurations
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { UploadModule } from './uploads/upload.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     ProductModule,
     UserModule,
     ReviewModule,
+    UploadModule,
     //static code (reuseable 11 lines below)
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

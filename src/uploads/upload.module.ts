@@ -1,31 +1,13 @@
 import { BadRequestException, Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { UserService } from './user.service';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { UploadController } from './upload.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+
 @Module({
-  controllers: [UserController],
-  providers: [UserService],
-  exports: [UserService, JwtModule],
   imports: [
-    TypeOrmModule.forFeature([User]),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          global: true,
-          secret: config.get<string>('JWT_SECRET'),
-          signOptions: { expiresIn: config.get<string>('JWT_EXPIRE_IN') },
-        };
-      },
-    }),
     MulterModule.register({
       storage: diskStorage({
-        destination: './images/users',
+        destination: './images',
         filename: (req, file, cb) => {
           const prefix = `${Date.now()}-${Math.round(Math.random() * 21432345)}`;
           const fileName = `${prefix}-${file.originalname}`;
@@ -42,5 +24,8 @@ import { diskStorage } from 'multer';
       limits: { fileSize: 1024 * 1024 * 2 },
     }),
   ],
+  controllers: [UploadController],
+  providers: [],
+  exports: [],
 })
-export class UserModule {}
+export class UploadModule {}

@@ -12,6 +12,8 @@ import * as bcrypt from 'bcryptjs';
 import { LoginDTO } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { updateUserDTO } from './dtos/updateUser.dto';
+import { unlinkSync } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class UserService {
@@ -153,5 +155,47 @@ export class UserService {
     }
 
     await this.userRepository.remove(user);
+  }
+
+  /**
+   * upload user profile Image
+   * @param userId
+   * @param userProfileImage
+   * @returns user data from the user table
+   */
+  public async uploadUserProfileImage(
+    userId: number,
+    userProfileImage: string,
+  ) {
+    const user = await this.getUserProfile(userId);
+    if (user.profileImage === null) {
+      user.profileImage = userProfileImage;
+    } else {
+      await this.removeProfileImage(userId);
+      user.profileImage = userProfileImage;
+    }
+
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * DELETE USER PROFILE IMAGE
+   * @param userId
+   * @returns nothing
+   */
+  public async removeProfileImage(userId: number) {
+    const user = await this.getUserProfile(userId);
+    if (user.profileImage === null) {
+      throw new BadRequestException('there is not profile image');
+    }
+
+    const imagePath = join(
+      process.cwd(),
+      `./images/users/${user.profileImage}`,
+    );
+    unlinkSync(imagePath);
+
+    user.profileImage = null;
+    return this.userRepository.save(user);
   }
 }

@@ -11,7 +11,12 @@ import {
   Param,
   Put,
   Delete,
+  UseInterceptors,
+  BadRequestException,
+  UploadedFile,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express'; // <-- change this line
 import { UserService } from './user.service';
 import { RegisterDTO } from './dtos/register.dto';
 import { LoginDTO } from './dtos/login.dto';
@@ -20,6 +25,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { Roles, RolesOrOwner } from './decorators/roles.decorator';
 import { UserType } from './user.entity';
 import { updateUserDTO } from './dtos/updateUser.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/users')
 export class UserController {
@@ -75,5 +81,29 @@ export class UserController {
   public async deleteUser(@Param('id', ParseIntPipe) id: number) {
     await this.userService.deleteUser(id);
     return { message: 'user Delete successfully' };
+  }
+
+  @Post('profile-image')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('profile-image'))
+  public uploadProfileImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    if (!file) throw new BadRequestException('no image provided');
+    return this.userService.uploadUserProfileImage(req.user.id, file.filename);
+  }
+
+  @Delete('profile-image/delete')
+  @UseGuards(AuthGuard)
+  public removeUserProfileImage(@Request() req: any) {
+    return this.userService.removeProfileImage(req.user.id);
+  }
+
+  // GET: ~/api/users/images/:image
+  @Get('profile-image/:image')
+  @UseGuards(AuthGuard)
+  public showProfileImage(@Param('image') image: string, @Res() res: Response) {
+    return res.sendFile(image, { root: 'images/users' });
   }
 }
