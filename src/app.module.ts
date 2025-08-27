@@ -1,4 +1,10 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 
 // the modules of the project
 import { ProductModule } from './products/product.module';
@@ -17,6 +23,7 @@ import { User } from './users/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UploadModule } from './uploads/upload.module';
+import { LoggerMiddleware } from './middlewares/loggerMiddleware';
 
 @Module({
   imports: [
@@ -54,4 +61,11 @@ import { UploadModule } from './uploads/upload.module';
     { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
+  }
+}
