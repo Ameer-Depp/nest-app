@@ -13,6 +13,8 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
+import { ApiQuery, ApiSecurity, ApiTags } from '@nestjs/swagger';
+
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
 import { ProductService } from './product.service';
@@ -30,12 +32,17 @@ export class ProductController {
   @Post()
   @UseGuards(AuthGuard, RolesGuard) // <-- 1. First, authenticate (sets req.user)
   @Roles(UserType.Admin) // <-- 2. Then, authorize (checks req.user.userType)
+  @ApiSecurity('bearer')
   createProducts(@Body() body: CreateProductDTO, @Request() req: any) {
     // Now req.user should be defined
     return this.productService.createProducts(body, req.user.id);
   }
 
   @Get()
+  @ApiTags('Products')
+  @ApiQuery({ name: 'title', required: false, type: String })
+  @ApiQuery({ name: 'minPrice', required: false, type: Number })
+  @ApiQuery({ name: 'maxPrice', required: false, type: Number })
   public getAllProducts(@Query() filters: ProductFiltersDTO) {
     return this.productService.getAllProducts(
       filters.title,
@@ -52,6 +59,7 @@ export class ProductController {
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserType.Admin)
+  @ApiSecurity('bearer')
   public updateProductById(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateProductDTO,
@@ -62,6 +70,7 @@ export class ProductController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserType.Admin)
+  @ApiSecurity('bearer')
   public async deleteProduct(@Param('id', ParseIntPipe) id: number) {
     await this.productService.deleteProduct(id);
     return { message: 'product deleted successfully' };

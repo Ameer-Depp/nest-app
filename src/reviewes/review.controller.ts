@@ -20,6 +20,7 @@ import { Roles, RolesOrOwner } from 'src/users/decorators/roles.decorator';
 import { AuthGuard } from 'src/users/guards/auth.guard';
 import { UserType } from 'src/users/user.entity';
 import { RolesGuard } from 'src/users/guards/roles.guard';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('api/reviews')
 export class ReviewController {
@@ -28,6 +29,7 @@ export class ReviewController {
   @Post('/:id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserType.Admin, UserType.Normal_USER)
+  @ApiSecurity('bearer')
   public createReview(
     @Body() body: CreateReviewDto,
     @Param('id', ParseIntPipe) id: number,
@@ -38,6 +40,7 @@ export class ReviewController {
 
   @Get()
   @UseGuards(AuthGuard)
+  @ApiSecurity('bearer')
   public getAllReviews(
     @Query('pageNumber', ParseIntPipe) pageNumber: number,
     @Query('reviewPerPage', ParseIntPipe) reviewPerPage: number,
@@ -47,12 +50,14 @@ export class ReviewController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
+  @ApiSecurity('bearer')
   public getReviewById(@Param('id', ParseIntPipe) id: number) {
     return this.reviewService.getReviewById(id);
   }
 
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
+  @ApiSecurity('bearer')
   updateReview(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateReviewDto,
@@ -64,6 +69,7 @@ export class ReviewController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @RolesOrOwner(UserType.Admin)
+  @ApiSecurity('bearer')
   public async deleteReview(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: any,

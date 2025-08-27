@@ -10,15 +10,23 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import type { Response } from 'express'; // 👈 Import Response from express
+import { SingleFileUploadDTO } from './dto/single-file.dto';
+import { MultipleFilesUploadDTO } from './dto/file-upload.dto';
 
 @Controller('api/uploads')
 export class UploadController {
+  // SINGLE file upload
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file')) // Expects field name "file"
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: SingleFileUploadDTO, // 👈 Use single file DTO
+    description: 'Upload a single file',
+  })
   public uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('no file provided');
-    console.log('file uploaded', { file });
     return {
       message: 'file uploaded successfully',
       filename: file.filename,
@@ -27,18 +35,25 @@ export class UploadController {
     };
   }
 
-  // POST: ~/api/uploads/multiple-files
+  // MULTIPLE files upload
   @Post('multiple-files')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(FilesInterceptor('files')) // Expects field name "files"
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: MultipleFilesUploadDTO, // 👈 Use multiple files DTO
+    description: 'Upload multiple files at once',
+  })
   public uploadMultipleFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     if (!files || files.length === 0) {
-      throw new BadRequestException('no file provided');
+      throw new BadRequestException('no files provided');
     }
-
-    console.log('Files uploaded', { files });
-    return { message: 'Files uploaded successfully' };
+    return {
+      message: 'Files uploaded successfully',
+      count: files.length,
+      filenames: files.map((file) => file.filename),
+    };
   }
 
   @Get(':images')

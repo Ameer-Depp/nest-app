@@ -26,6 +26,8 @@ import { Roles, RolesOrOwner } from './decorators/roles.decorator';
 import { UserType } from './user.entity';
 import { updateUserDTO } from './dtos/updateUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiSecurity } from '@nestjs/swagger';
+import { ImageUploadDTO } from './dtos/image-upload.dto';
 
 @Controller('api/users')
 export class UserController {
@@ -49,6 +51,7 @@ export class UserController {
   // that will be used in the @Request parameter (we want only the id)
   @UseGuards(AuthGuard)
   // the @Request will get the returned request from the AuthGuard, and put it in the (req) parameter *you can name it whatever you want
+  @ApiSecurity('bearer')
   getProfile(@Request() req: any) {
     // the req contains the decoded payload from the AuthGuard who brought to req by the @Request
     // and then we only need the id cause this function request an id to execute
@@ -59,6 +62,7 @@ export class UserController {
   @Get()
   @UseGuards(AuthGuard, RolesGuard) // Both authentication and authorization
   @Roles(UserType.Admin) // Only Admin can access
+  @ApiSecurity('bearer')
   getAllUsers() {
     return this.userService.getAllUsers();
   }
@@ -67,6 +71,7 @@ export class UserController {
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @RolesOrOwner(UserType.Admin)
+  @ApiSecurity('bearer')
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: updateUserDTO,
@@ -78,6 +83,7 @@ export class UserController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserType.Admin) // Only Admin can delete users
+  @ApiSecurity('bearer')
   public async deleteUser(@Param('id', ParseIntPipe) id: number) {
     await this.userService.deleteUser(id);
     return { message: 'user Delete successfully' };
@@ -85,7 +91,13 @@ export class UserController {
 
   @Post('profile-image')
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('profile-image'))
+  @UseInterceptors(FileInterceptor('file')) // 👈 Must match DTO property name
+  @ApiSecurity('bearer')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: ImageUploadDTO,
+    description: 'Upload user profile image',
+  })
   public uploadProfileImage(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: any,
@@ -96,6 +108,7 @@ export class UserController {
 
   @Delete('profile-image/delete')
   @UseGuards(AuthGuard)
+  @ApiSecurity('bearer')
   public removeUserProfileImage(@Request() req: any) {
     return this.userService.removeProfileImage(req.user.id);
   }
@@ -103,6 +116,7 @@ export class UserController {
   // GET: ~/api/users/images/:image
   @Get('profile-image/:image')
   @UseGuards(AuthGuard)
+  @ApiSecurity('bearer')
   public showProfileImage(@Param('image') image: string, @Res() res: Response) {
     return res.sendFile(image, { root: 'images/users' });
   }
