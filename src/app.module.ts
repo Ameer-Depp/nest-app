@@ -33,7 +33,9 @@ import { AppController } from './app.controller';
     //static code (reuseable 3 lines below)
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env.development',
+      envFilePath: process.env.NODE_ENV
+        ? `.env.${process.env.NODE_ENV}`
+        : '.env',
     }),
     ProductModule,
     UserModule,
