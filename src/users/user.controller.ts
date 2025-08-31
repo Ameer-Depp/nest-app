@@ -91,7 +91,7 @@ export class UserController {
 
   @Post('profile-image')
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('file')) // 👈 Must match DTO property name
+  @UseInterceptors(FileInterceptor('profile-image')) // 👈 Must match DTO property name
   @ApiSecurity('bearer')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
