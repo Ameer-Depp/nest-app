@@ -30,13 +30,6 @@ import { AppController } from './app.controller';
 @Module({
   controllers: [AppController],
   imports: [
-    //static code (reuseable 3 lines below)
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: process.env.NODE_ENV
-        ? `.env.${process.env.NODE_ENV}`
-        : '.env',
-    }),
     ProductModule,
     UserModule,
     ReviewModule,
@@ -46,10 +39,9 @@ import { AppController } from './app.controller';
     //static code (reuseable 3 lines below)
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV !== 'production'
-          ? `.env.${process.env.NODE_ENV}`
-          : '.env',
+      envFilePath: process.env.NODE_ENV
+        ? `.env.${process.env.NODE_ENV}`
+        : '.env',
     }),
   ],
   //static code (reuseable 2 lines below)
